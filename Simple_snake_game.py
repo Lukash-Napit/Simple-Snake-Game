@@ -58,29 +58,43 @@ class Snake:
         if self.head.heading() != LEFT:
             self.head.setheading(RIGHT)
 
+    def reset(self):
+        for seg in self.segments:
+            seg.goto(800,800)
+        self.segments.clear()
+        self.create_snake()
+        self.head=self.segments[0]
+
 #this class tracks the score.
 class Scoreboard(Turtle):
 
     def __init__(self):
         super().__init__()
         self.score = 0
+        with open("data.txt") as data:
+            self.high_score = int(data.read())
         self.color("white")
         self.penup()
-        self.goto(0, 270)
+        self.goto(0, 215)
         self.hideturtle()
         self.update_scoreboard()
 
     def update_scoreboard(self):
-        self.write(f"Score: {self.score}", align=ALIGNMENT, font=FONT)
+        self.clear()
+        self.write(f"Score: {self.score} High Score: {self.high_score}", align=ALIGNMENT, font=FONT)
 
-    def game_over(self):
-        self.goto(0, 0)
-        self.write("GAME OVER", align=ALIGNMENT, font=FONT)
+    def reset(self):
+        if self.score > self.high_score:
+            self.high_score = self.score
+            with open("data.txt", mode="w") as data:
+                data.write(f"{self.high_score}")
+        self.score = 0
+        self.update_scoreboard()
 
     def increase_score(self):
         self.score += 1
-        self.clear()
         self.update_scoreboard()
+
 
 #this class creates and controls the movement of food element using turtle.
 class Food(Turtle):
@@ -133,16 +147,17 @@ while game_is_on:
 
     #this if statement detects collision with wall.
     if snake.head.xcor() > 240or snake.head.xcor() < -240 or snake.head.ycor() > 240 or snake.head.ycor() < -240:
-        game_is_on = False
-        scoreboard.game_over()
+        scoreboard.reset()
+        snake.reset()
 
     #this if and elif statement detects collision with tail.
     for segment in snake.segments:
         if segment == snake.head:
             pass
         elif snake.head.distance(segment) < 10:
-            game_is_on = False
-            scoreboard.game_over()
+            scoreboard.reset()
+            snake.reset()
+
 
 
 screen.exitonclick()
